@@ -232,8 +232,7 @@ pub use std::convert::From as std_convert_From;
 macro_rules! enum_derive_util {
     (@as_expr $e:expr) => {$e};
     (@as_item $($i:item)+) => {$($i)+};
-    (@first_expr $head:expr, $($tail:expr),*) => {$head};
-    (@first_expr $head:expr) => {$head};
+    (@first_expr $head:expr $(, $($($tail:expr),+ $(,)?)?)?) => {$head};
 
     (
         @collect_unitary_variants ($callback:ident { $($args:tt)* }),
