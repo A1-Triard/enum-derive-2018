@@ -346,7 +346,7 @@ macro_rules! IterVariants {
     ) => {
         $crate::enum_derive_util! { @as_item $vis struct $itername($crate::std_option_Option<$name>); }
 
-        IterVariants! { @iter ($itername, $name), ($($var_names,)*) -> () () (0usize) }
+        $crate::IterVariants! { @iter ($itername, $name), ($($var_names,)*) -> () () (0usize) }
 
         $crate::enum_derive_util! {
             @as_item
@@ -369,7 +369,7 @@ macro_rules! IterVariants {
                 fn next(&mut self) -> $crate::std_option_Option<Self::Item> {
                     let next_item = match self.0 {
                         $($next_body)*
-                        None => None
+                        $crate::std_option_Option::None => $crate::std_option_Option::None
                     };
                     $crate::std_mem_replace(&mut self.0, next_item)
                 }
@@ -378,7 +378,7 @@ macro_rules! IterVariants {
                     let variants = $($count)*;
                     let progress = match self.0 {
                         $($size_body)*
-                        None => variants
+                        $crate::std_option_Option::None => variants
                     };
                     (variants - progress, $crate::std_option_Option::Some(variants - progress))
                 }
@@ -391,7 +391,7 @@ macro_rules! IterVariants {
     (
         @iter ($itername:ident, $name:ident), ($a:ident, $b:ident, $($rest:tt)*) -> ($($next_body:tt)*) ($($size_body:tt)*) ($($count:tt)*)
     ) => {
-        IterVariants! {
+        $crate::IterVariants! {
             @iter ($itername, $name), ($b, $($rest)*)
             -> (
                 $($next_body)*
@@ -408,7 +408,7 @@ macro_rules! IterVariants {
     (
         @iter ($itername:ident, $name:ident), ($a:ident,) -> ($($next_body:tt)*) ($($size_body:tt)*) ($($count:tt)*)
     ) => {
-        IterVariants! {
+        $crate::IterVariants! {
             @iter ($itername, $name), ()
             -> (
                 $($next_body)*
@@ -441,11 +441,11 @@ macro_rules! IterVariantNames {
         impl $crate::std_iter_Iterator for $itername {
             type Item = &'static str;
             fn next(&mut self) -> $crate::std_option_Option<Self::Item> {
-                None
+                $crate::std_option_Option::None
             }
 
             fn size_hint(&self) -> (usize, $crate::std_option_Option<usize>) {
-                (0, Some(0))
+                (0, $crate::std_option_Option::Some(0))
             }
         }
 
@@ -467,7 +467,7 @@ macro_rules! IterVariantNames {
     ) => {
         $crate::enum_derive_util! { @as_item $vis struct $itername($crate::std_option_Option<$name>); }
 
-        IterVariantNames! { @iter ($itername, $name), ($($var_names,)*) -> () () (0usize) }
+        $crate::IterVariantNames! { @iter ($itername, $name), ($($var_names,)*) -> () () (0usize) }
 
         $crate::enum_derive_util! {
             @as_item
@@ -513,7 +513,7 @@ macro_rules! IterVariantNames {
     (
         @iter ($itername:ident, $name:ident), ($a:ident, $b:ident, $($rest:tt)*) -> ($($next_body:tt)*) ($($size_body:tt)*) ($($count:tt)*)
     ) => {
-        IterVariantNames! {
+        $crate::IterVariantNames! {
             @iter ($itername, $name), ($b, $($rest)*)
             -> (
                 $($next_body)*
@@ -531,7 +531,7 @@ macro_rules! IterVariantNames {
     (
         @iter ($itername:ident, $name:ident), ($a:ident,) -> ($($next_body:tt)*) ($($size_body:tt)*) ($($count:tt)*)
     ) => {
-        IterVariantNames! {
+        $crate::IterVariantNames! {
             @iter ($itername, $name), ()
             -> (
                 $($next_body)*
@@ -579,7 +579,7 @@ macro_rules! NextVariant {
             impl $name {
                 #[allow(dead_code)]
                 $vis fn next_variant(&self) -> $crate::std_option_Option<$name> {
-                    NextVariant!(@arms ($name, self), ($($var_names)*) -> ())
+                    $crate::NextVariant!(@arms ($name, self), ($($var_names)*) -> ())
                 }
             }
         }
@@ -600,7 +600,7 @@ macro_rules! NextVariant {
     (
         @arms ($name:ident, $self_:expr), ($a:ident $b:ident $($rest:tt)*) -> ($($body:tt)*)
     ) => {
-        NextVariant! {
+        $crate::NextVariant! {
             @arms ($name, $self_), ($b $($rest)*)
             -> (
                 $($body)*
@@ -642,7 +642,7 @@ macro_rules! PrevVariant {
             impl $name {
                 #[allow(dead_code)]
                 $vis fn prev_variant(&self) -> $crate::std_option_Option<$name> {
-                    PrevVariant!(@arms ($name, self), ($crate::std_option_Option::None, $($var_names)*) -> ())
+                    $crate::PrevVariant!(@arms ($name, self), ($crate::std_option_Option::None, $($var_names)*) -> ())
                 }
             }
         }
@@ -663,7 +663,7 @@ macro_rules! PrevVariant {
     (
         @arms ($name:ident, $self_:expr), ($prev:expr, $a:ident $($rest:tt)*) -> ($($body:tt)*)
     ) => {
-        PrevVariant! {
+        $crate::PrevVariant! {
             @arms ($name, $self_), ($crate::std_option_Option::Some($name::$a), $($rest)*)
             -> (
                 $($body)*
@@ -703,7 +703,7 @@ macro_rules! EnumDisplay {
             @as_item
             impl $crate::std_fmt_Display for $name {
                 fn fmt(&self, f: &mut $crate::std_fmt_Formatter) -> $crate::std_fmt_Result {
-                    EnumDisplay!(@arms ($name, self, f), ($($var_names)*) -> ())
+                    $crate::EnumDisplay!(@arms ($name, self, f), ($($var_names)*) -> ())
                 }
             }
         }
@@ -724,7 +724,7 @@ macro_rules! EnumDisplay {
     (
         @arms ($name:ident, $self_:expr, $f:ident), ($a:ident $b:ident $($rest:tt)*) -> ($($body:tt)*)
     ) => {
-        EnumDisplay! {
+        $crate::EnumDisplay! {
             @arms ($name, $self_, $f), ($b $($rest)*)
             -> (
                 $($body)*
@@ -753,7 +753,7 @@ macro_rules! EnumFromStr {
                 type Err = $crate::ParseEnumError;
 
                 fn from_str(_: &str) -> $crate::std_result_Result<Self, Self::Err> {
-                    Err($crate::ParseEnumError)
+                    $crate::std_result_Result::Err($crate::ParseEnumError)
                 }
             }
         }
@@ -768,7 +768,7 @@ macro_rules! EnumFromStr {
                 type Err = $crate::ParseEnumError;
 
                 fn from_str(s: &str) -> Result<Self, Self::Err> {
-                    EnumFromStr!(@arms ($name, s), ($($var_names)*) -> ())
+                    $crate::EnumFromStr!(@arms ($name, s), ($($var_names)*) -> ())
                 }
             }
         }
@@ -790,7 +790,7 @@ macro_rules! EnumFromStr {
     (
         @arms ($name:ident, $s:ident), ($a:ident $b:ident $($rest:tt)*) -> ($($body:tt)*)
     ) => {
-        EnumFromStr! {
+        $crate::EnumFromStr! {
             @arms ($name, $s), ($b $($rest)*)
             -> (
                 $($body)*
@@ -857,13 +857,13 @@ macro_rules! EnumInnerAsTrait {
     (
         @expand ($vis:vis $fn_name:ident -> &mut $tr:ty), $($tail:tt)*
     ) => {
-        EnumInnerAsTrait! { @expand_inner ($vis), $fn_name, (mut), $tr, $($tail)* }
+        $crate::EnumInnerAsTrait! { @expand_inner ($vis), $fn_name, (mut), $tr, $($tail)* }
     };
 
     (
         @expand ($vis:vis $fn_name:ident -> &$tr:ty), $($tail:tt)*
     ) => {
-        EnumInnerAsTrait! { @expand_inner ($vis), $fn_name, (), $tr, $($tail)* }
+        $crate::EnumInnerAsTrait! { @expand_inner ($vis), $fn_name, (), $tr, $($tail)* }
     };
 
     (
