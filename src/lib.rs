@@ -294,17 +294,7 @@ macro_rules! enum_derive_util {
 
     (
         @collect_unary_variants $fixed:tt,
-        ($var_name:ident($var_ty:ty), $($tail:tt)*) -> ($($out:tt)*)
-    ) => {
-        $crate::enum_derive_util! {
-            @collect_unary_variants $fixed,
-            ($($tail)*) -> ($($out)* $var_name($var_ty),)
-        }
-    };
-
-    (
-        @collect_unary_variants $fixed:tt,
-        ($var_name:ident(pub $var_ty:ty), $($tail:tt)*) -> ($($out:tt)*)
+        ($var_name:ident($vis:vis $var_ty:ty), $($tail:tt)*) -> ($($out:tt)*)
     ) => {
         $crate::enum_derive_util! {
             @collect_unary_variants $fixed,
@@ -323,9 +313,9 @@ macro_rules! enum_derive_util {
 #[macro_export]
 macro_rules! IterVariants {
     (
-        @expand ($($pub_:tt)*) $itername:ident, $name:ident ()
+        @expand ($vis:vis) $itername:ident, $name:ident ()
     ) => {
-        $crate::enum_derive_util! { @as_item $($pub_)* struct $itername; }
+        $crate::enum_derive_util! { @as_item $vis struct $itername; }
 
         impl $crate::std_iter_Iterator for $itername {
             type Item = $name;
@@ -344,7 +334,7 @@ macro_rules! IterVariants {
             @as_item
             impl $name {
                 #[allow(dead_code)]
-                $($pub_)* fn iter_variants() -> $itername {
+                $vis fn iter_variants() -> $itername {
                     $itername
                 }
             }
@@ -352,9 +342,9 @@ macro_rules! IterVariants {
     };
 
     (
-        @expand ($($pub_:tt)*) $itername:ident, $name:ident ($($var_names:ident),*)
+        @expand ($vis:vis) $itername:ident, $name:ident ($($var_names:ident),*)
     ) => {
-        $crate::enum_derive_util! { @as_item $($pub_)* struct $itername($crate::std_option_Option<$name>); }
+        $crate::enum_derive_util! { @as_item $vis struct $itername($crate::std_option_Option<$name>); }
 
         IterVariants! { @iter ($itername, $name), ($($var_names,)*) -> () () (0usize) }
 
@@ -362,7 +352,7 @@ macro_rules! IterVariants {
             @as_item
             impl $name {
                 #[allow(dead_code)]
-                $($pub_)* fn iter_variants() -> $itername {
+                $vis fn iter_variants() -> $itername {
                     $itername($crate::std_option_Option::Some($crate::enum_derive_util!(@first_expr $($name::$var_names),+)))
                 }
             }
@@ -432,18 +422,10 @@ macro_rules! IterVariants {
         }
     };
 
-    (($itername:ident) pub enum $name:ident { $($body:tt)* }) => {
+    (($itername:ident) $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
-            (IterVariants { @expand (pub) $itername, $name }),
-            ($($body)*,) -> ()
-        }
-    };
-
-    (($itername:ident) enum $name:ident { $($body:tt)* }) => {
-        $crate::enum_derive_util! {
-            @collect_unitary_variants
-            (IterVariants { @expand () $itername, $name }),
+            (IterVariants { @expand ($vis) $itername, $name }),
             ($($body)*,) -> ()
         }
     };
@@ -452,9 +434,9 @@ macro_rules! IterVariants {
 #[macro_export]
 macro_rules! IterVariantNames {
     (
-        @expand ($($pub_:tt)*) $itername:ident, $name:ident ()
+        @expand ($vis:vis) $itername:ident, $name:ident ()
     ) => {
-        $crate::enum_derive_util! { @as_item $($pub_)* struct $itername; }
+        $crate::enum_derive_util! { @as_item $vis struct $itername; }
 
         impl $crate::std_iter_Iterator for $itername {
             type Item = &'static str;
@@ -473,7 +455,7 @@ macro_rules! IterVariantNames {
             @as_item
             impl $name {
                 #[allow(dead_code)]
-                $($pub_)* fn iter_variant_names() -> $itername {
+                $vis fn iter_variant_names() -> $itername {
                     $itername
                 }
             }
@@ -481,9 +463,9 @@ macro_rules! IterVariantNames {
     };
 
     (
-        @expand ($($pub_:tt)*) $itername:ident, $name:ident ($($var_names:ident),*)
+        @expand ($vis:vis) $itername:ident, $name:ident ($($var_names:ident),*)
     ) => {
-        $crate::enum_derive_util! { @as_item $($pub_)* struct $itername($crate::std_option_Option<$name>); }
+        $crate::enum_derive_util! { @as_item $vis struct $itername($crate::std_option_Option<$name>); }
 
         IterVariantNames! { @iter ($itername, $name), ($($var_names,)*) -> () () (0usize) }
 
@@ -491,7 +473,7 @@ macro_rules! IterVariantNames {
             @as_item
             impl $name {
                 #[allow(dead_code)]
-                $($pub_)* fn iter_variant_names() -> $itername {
+                $vis fn iter_variant_names() -> $itername {
                     $itername($crate::std_option_Option::Some($crate::enum_derive_util!(@first_expr $($name::$var_names),+)))
                 }
             }
@@ -564,18 +546,10 @@ macro_rules! IterVariantNames {
         }
     };
 
-    (($itername:ident) pub enum $name:ident { $($body:tt)* }) => {
+    (($itername:ident) $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
-            (IterVariantNames { @expand (pub) $itername, $name }),
-            ($($body)*,) -> ()
-        }
-    };
-
-    (($itername:ident) enum $name:ident { $($body:tt)* }) => {
-        $crate::enum_derive_util! {
-            @collect_unitary_variants
-            (IterVariantNames { @expand () $itername, $name }),
+            (IterVariantNames { @expand ($vis) $itername, $name }),
             ($($body)*,) -> ()
         }
     };
@@ -584,13 +558,13 @@ macro_rules! IterVariantNames {
 #[macro_export]
 macro_rules! NextVariant {
     (
-        @expand ($($pub_:tt)*) $name:ident ()
+        @expand ($vis:vis) $name:ident ()
     ) => {
         $crate::enum_derive_util! {
             @as_item
             impl $name {
                 #[allow(dead_code)]
-                $($pub_)* fn next_variant(&self) -> $crate::std_option_Option<$name> {
+                $vis fn next_variant(&self) -> $crate::std_option_Option<$name> {
                     loop {} // unreachable
                 }
             }
@@ -598,13 +572,13 @@ macro_rules! NextVariant {
     };
 
     (
-        @expand ($($pub_:tt)*) $name:ident ($($var_names:ident),*)
+        @expand ($vis:vis) $name:ident ($($var_names:ident),*)
     ) => {
         $crate::enum_derive_util! {
             @as_item
             impl $name {
                 #[allow(dead_code)]
-                $($pub_)* fn next_variant(&self) -> $crate::std_option_Option<$name> {
+                $vis fn next_variant(&self) -> $crate::std_option_Option<$name> {
                     NextVariant!(@arms ($name, self), ($($var_names)*) -> ())
                 }
             }
@@ -635,18 +609,10 @@ macro_rules! NextVariant {
         }
     };
 
-    (() pub enum $name:ident { $($body:tt)* }) => {
+    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
-            (NextVariant { @expand (pub) $name }),
-            ($($body)*,) -> ()
-        }
-    };
-
-    (() enum $name:ident { $($body:tt)* }) => {
-        $crate::enum_derive_util! {
-            @collect_unitary_variants
-            (NextVariant { @expand () $name }),
+            (NextVariant { @expand ($vis) $name }),
             ($($body)*,) -> ()
         }
     };
@@ -655,13 +621,13 @@ macro_rules! NextVariant {
 #[macro_export]
 macro_rules! PrevVariant {
     (
-        @expand ($($pub_:tt)*) $name:ident ()
+        @expand ($vis:vis) $name:ident ()
     ) => {
         $crate::enum_derive_util! {
             @as_item
             impl $name {
                 #[allow(dead_code)]
-                $($pub_)* fn prev_variant(&self) -> $crate::std_option_Option<$name> {
+                $vis fn prev_variant(&self) -> $crate::std_option_Option<$name> {
                     loop {} // unreachable
                 }
             }
@@ -669,13 +635,13 @@ macro_rules! PrevVariant {
     };
 
     (
-        @expand ($($pub_:tt)*) $name:ident ($($var_names:ident),*)
+        @expand ($vis:vis) $name:ident ($($var_names:ident),*)
     ) => {
         $crate::enum_derive_util! {
             @as_item
             impl $name {
                 #[allow(dead_code)]
-                $($pub_)* fn prev_variant(&self) -> $crate::std_option_Option<$name> {
+                $vis fn prev_variant(&self) -> $crate::std_option_Option<$name> {
                     PrevVariant!(@arms ($name, self), ($crate::std_option_Option::None, $($var_names)*) -> ())
                 }
             }
@@ -706,18 +672,10 @@ macro_rules! PrevVariant {
         }
     };
 
-    (() pub enum $name:ident { $($body:tt)* }) => {
+    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
-            (PrevVariant { @expand (pub) $name }),
-            ($($body)*,) -> ()
-        }
-    };
-
-    (() enum $name:ident { $($body:tt)* }) => {
-        $crate::enum_derive_util! {
-            @collect_unitary_variants
-            (PrevVariant { @expand () $name }),
+            (PrevVariant { @expand ($vis) $name }),
             ($($body)*,) -> ()
         }
     };
@@ -775,15 +733,7 @@ macro_rules! EnumDisplay {
         }
     };
 
-    (() pub enum $name:ident { $($body:tt)* }) => {
-        $crate::enum_derive_util! {
-            @collect_unitary_variants
-            (EnumDisplay { @expand $name }),
-            ($($body)*,) -> ()
-        }
-    };
-
-    (() enum $name:ident { $($body:tt)* }) => {
+    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
             (EnumDisplay { @expand $name }),
@@ -795,7 +745,7 @@ macro_rules! EnumDisplay {
 #[macro_export]
 macro_rules! EnumFromStr {
     (
-        @expand ($($pub_:tt)*) $name:ident ()
+        @expand ($vis:vis) $name:ident ()
     ) => {
         $crate::enum_derive_util! {
             @as_item
@@ -810,7 +760,7 @@ macro_rules! EnumFromStr {
     };
 
     (
-        @expand ($($pub_:tt)*) $name:ident ($($var_names:ident),*)
+        @expand ($vis:vis) $name:ident ($($var_names:ident),*)
     ) => {
         $crate::enum_derive_util! {
             @as_item
@@ -849,18 +799,10 @@ macro_rules! EnumFromStr {
         }
     };
 
-    (() pub enum $name:ident { $($body:tt)* }) => {
+    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
-            (EnumFromStr { @expand (pub) $name }),
-            ($($body)*,) -> ()
-        }
-    };
-
-    (() enum $name:ident { $($body:tt)* }) => {
-        $crate::enum_derive_util! {
-            @collect_unitary_variants
-            (EnumFromStr { @expand () $name }),
+            (EnumFromStr { @expand ($vis) $name }),
             ($($body)*,) -> ()
         }
     };
@@ -901,7 +843,7 @@ macro_rules! EnumFromInner {
         )*
     };
 
-    (() $(pub)* enum $name:ident { $($body:tt)* }) => {
+    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unary_variants
             (EnumFromInner { @expand $name }),
@@ -913,39 +855,27 @@ macro_rules! EnumFromInner {
 #[macro_export]
 macro_rules! EnumInnerAsTrait {
     (
-        @expand (pub $fn_name:ident -> &mut $tr:ty), $($tail:tt)*
+        @expand ($vis:vis $fn_name:ident -> &mut $tr:ty), $($tail:tt)*
     ) => {
-        EnumInnerAsTrait! { @expand_inner (pub), $fn_name, (mut), $tr, $($tail)* }
+        EnumInnerAsTrait! { @expand_inner ($vis), $fn_name, (mut), $tr, $($tail)* }
     };
 
     (
-        @expand (pub $fn_name:ident -> &$tr:ty), $($tail:tt)*
+        @expand ($vis:vis $fn_name:ident -> &$tr:ty), $($tail:tt)*
     ) => {
-        EnumInnerAsTrait! { @expand_inner (pub), $fn_name, (), $tr, $($tail)* }
-    };
-
-    (
-        @expand ($fn_name:ident -> &mut $tr:ty), $($tail:tt)*
-    ) => {
-        EnumInnerAsTrait! { @expand_inner (), $fn_name, (mut), $tr, $($tail)* }
-    };
-
-    (
-        @expand ($fn_name:ident -> &$tr:ty), $($tail:tt)*
-    ) => {
-        EnumInnerAsTrait! { @expand_inner (), $fn_name, (), $tr, $($tail)* }
+        EnumInnerAsTrait! { @expand_inner ($vis), $fn_name, (), $tr, $($tail)* }
     };
 
     (
         @expand_inner
-        ($($vis:tt)*), $fn_name:ident, (mut), $tr:ty,
+        ($vis:vis), $fn_name:ident, (mut), $tr:ty,
         $ty_name:ident,
         ($($var_names:ident($_var_tys:ty),)*)
     ) => {
         $crate::enum_derive_util! {
             @as_item
             impl $ty_name {
-                $($vis)* fn $fn_name(&mut self) -> &mut $tr {
+                $vis fn $fn_name(&mut self) -> &mut $tr {
                     match *self {
                         $(
                             $ty_name::$var_names(ref mut v) => v as &mut $tr,
@@ -958,14 +888,14 @@ macro_rules! EnumInnerAsTrait {
 
     (
         @expand_inner
-        ($($vis:tt)*), $fn_name:ident, (), $tr:ty,
+        ($vis:vis), $fn_name:ident, (), $tr:ty,
         $ty_name:ident,
         ($($var_names:ident($_var_tys:ty),)*)
     ) => {
         $crate::enum_derive_util! {
             @as_item
             impl $ty_name {
-                $($vis)* fn $fn_name(&self) -> &$tr {
+                $vis fn $fn_name(&self) -> &$tr {
                     match *self {
                         $(
                             $ty_name::$var_names(ref v) => v as &$tr,
@@ -976,7 +906,7 @@ macro_rules! EnumInnerAsTrait {
         }
     };
 
-    ($arg:tt $(pub)* enum $name:ident { $($body:tt)* }) => {
+    ($arg:tt $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unary_variants
             (EnumInnerAsTrait { @expand $arg, $name, }),
