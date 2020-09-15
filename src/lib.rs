@@ -816,8 +816,8 @@ See the crate documentation for the `EnumFromStr!` macro.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseEnumError;
 
-impl std::fmt::Display for ParseEnumError {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+impl core::fmt::Display for ParseEnumError {
+    fn fmt(&self, fmt: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
         write!(fmt, "provided string did not match any enum variant")
     }
 }
