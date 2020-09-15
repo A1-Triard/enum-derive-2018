@@ -204,28 +204,29 @@ assert_eq!(from_troll(&troll_number), Ok(number));
 
 #![deny(warnings)]
 #![cfg_attr(not(feature = "std"), no_std)]
-#[cfg(not(feature = "std"))] extern crate core as std;
+#[cfg(feature = "std")]
+extern crate core;
 
 #[doc(hidden)]
-pub use std::iter::Iterator as std_iter_Iterator; 
+pub use core::iter::Iterator as std_iter_Iterator; 
 #[doc(hidden)]
-pub use std::option::Option as std_option_Option;
+pub use core::option::Option as std_option_Option;
 #[doc(hidden)]
-pub use std::iter::ExactSizeIterator as std_iter_ExactSizeIterator;
+pub use core::iter::ExactSizeIterator as std_iter_ExactSizeIterator;
 #[doc(hidden)]
-pub use std::fmt::Display as std_fmt_Display;
+pub use core::fmt::Display as std_fmt_Display;
 #[doc(hidden)]
-pub use std::fmt::Formatter as std_fmt_Formatter;
+pub use core::fmt::Formatter as std_fmt_Formatter;
 #[doc(hidden)]
-pub use std::fmt::Result as std_fmt_Result;
+pub use core::fmt::Result as std_fmt_Result;
 #[doc(hidden)]
-pub use std::result::Result as std_result_Result;
+pub use core::result::Result as std_result_Result;
 #[doc(hidden)]
-pub use std::str::FromStr as std_str_FromStr;
+pub use core::str::FromStr as std_str_FromStr;
 #[doc(hidden)]
-pub use std::mem::replace as std_mem_replace;
+pub use core::mem::replace as std_mem_replace;
 #[doc(hidden)]
-pub use std::convert::From as std_convert_From;
+pub use core::convert::From as std_convert_From;
 
 #[doc(hidden)]
 #[macro_export]

@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "enum-derive-2018"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["warlock <internalmike@gmail.com>"]
 description = "This crate provides macros for deriving additional functionality for enums."
 readme = "README.md"
@@ -16,4 +16,4 @@ default = ["std"]
 std = []
 
 [dev-dependencies]
-macro-attr-2018 = "0.3.3"
+macro-attr-2018 = "0.4.0"
