@@ -1,11 +1,11 @@
 [package]
 edition = "2018"
 name = "enum-derive-2018"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["warlock <internalmike@gmail.com>"]
 description = "This crate provides macros for deriving additional functionality for enums."
 readme = "README.md"
-documentation = "https://docs.rs/crate/enum-derive-2018/"
+documentation = "https://docs.rs/enum-derive-2018/"
 keywords = ["enum", "derive", "custom_derive", "macro", "macro-attr"]
 categories = ["rust-patterns", "no-std"]
 license = "MIT OR Apache-2.0"
