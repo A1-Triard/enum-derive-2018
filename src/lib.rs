@@ -293,7 +293,7 @@ macro_rules! IterVariants {
 /// # use macro_attr_2018::macro_attr;
 /// # use enum_derive_2018::IterVariantNames;
 /// macro_attr! {
-///     #[derive(IterVariants!(GetVariantNames))]
+///     #[derive(IterVariantNames!(GetVariantNames))]
 ///     pub enum Get { Up, Down, AllAround }
 /// }
 /// # fn main() {}
