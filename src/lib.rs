@@ -7,203 +7,42 @@
 // files in the project carrying such notice may not be copied, modified,
 // or distributed except according to those terms.
 
-/*!
-This crate provides several macros for deriving some useful methods for unitary enums (*i.e.* enums where variants do not have payloads).
-
-All of these macros are designed to be used with the [`macro-attr-2018`](https://crates.io/crates/macro-attr-2018) crate, though they can be used independent of it.
-
-# Example
-
-Derive iterators that yield all variants of an enum.
-
-```rust
-use macro_attr_2018::macro_attr;
-use enum_derive_2018::{IterVariants, IterVariantNames};
-
-macro_attr! {
-    #[derive(Debug, PartialEq, Eq,
-        IterVariants!(CandyVariants), IterVariantNames!(CandyVariantNames))]
-    pub enum Candy { Musk, FruitRock, BoPeeps, LemonSherbert }
-}
-
-# fn main() {
-let vars: CandyVariants = Candy::iter_variants();
-let names: CandyVariantNames = Candy::iter_variant_names();
-assert_eq!(&*vars.zip(names).collect::<Vec<_>>(), &[
-    (Candy::Musk, "Musk"),
-    (Candy::FruitRock, "FruitRock"),
-    (Candy::BoPeeps, "BoPeeps"),
-    (Candy::LemonSherbert, "LemonSherbert"),
-]);
-# }
-```
-
-Alternately, derive `next_variant` and `prev_variant` methods.
-
-```rust
-use macro_attr_2018::macro_attr;
-use enum_derive_2018::{NextVariant, PrevVariant};
-
-use Hanagami::*;
-
-macro_attr! {
-    #[derive(Debug, PartialEq, Eq, NextVariant!, PrevVariant!)]
-    pub enum Hanagami { Sakigami, Hasugami, Tsutagami }
-}
-
-# fn main() {
-assert_eq!(Sakigami.next_variant(), Some(Hasugami));
-assert_eq!(Hasugami.next_variant(), Some(Tsutagami));
-assert_eq!(Tsutagami.next_variant(), None);
-
-assert_eq!(Sakigami.prev_variant(), None);
-assert_eq!(Hasugami.prev_variant(), Some(Sakigami));
-assert_eq!(Tsutagami.prev_variant(), Some(Hasugami));
-# }
-```
-
-# Overview
-
-This crate provides macros to derive the following methods for unitary variant enums:
-
-- `EnumDisplay!` derives `Display`, which outputs the name of the variant.  Note that for unitary variants, this is identical to the behaviour of a derived `Debug` implementation.
-- `EnumFromStr!` derives `FromStr`, allowing `str::parse` to be used.  It requires an exact match of the variant name.
-- `IterVariants!` derives `iter_variants()`, which returns an iterator over the variants of the enum in lexical order.
-- `IterVariantNames!` derives `iter_variant_names()`, which returns an iterator over the string names of the variants of the enum in lexical order.
-- `NextVariant!` derives `next_variant(&self)`, which returns the next variant, or `None` when called for the last.
-- `PrevVariant!` derives `prev_variant(&self)`, which returns the previous variant, or `None` when called for the first.
-- `EnumFromInner!` derives `From<T>` for each variant's payload, assuming all variants are unary.
-- `EnumInnerAsTrait!` derives a method to return a borrowed pointer to the inner value, cast to a trait object.
-
-Both of the `IterVariant*!` macros accept a single deriving form.  Taking `IterVariants!` as an example, it must be invoked like so:
-
-```rust
-# use macro_attr_2018::macro_attr;
-# use enum_derive_2018::IterVariants;
-macro_attr! {
-    #[derive(IterVariants!(GetVariants))]
-    pub enum Get { Up, Down, AllAround }
-}
-# fn main() {}
-```
-
-The argument is the name of the iterator type that will be generated.  Neither macro imposes any naming requirements, save the obvious: the name must not conflict with any other types.
-
-`EnumInnerAsTrait!` accepts a single deriving form that specifies the name of the method to be derived, whether the borrow should be mutable, and the trait of interest.  For example:
-
-```rust
-# use macro_attr_2018::macro_attr;
-# use enum_derive_2018::EnumInnerAsTrait;
-macro_attr! {
-    #[derive(EnumInnerAsTrait!(pub as_display -> &dyn std::fmt::Display))]
-    enum Value {
-        U32(u32),
-        U64(u64),
-    }
-}
-
-# fn main() {
-let s = format!("{}", Value::U64(42).as_display());
-assert_eq!(&s[..], "42");
-# }
-```
-
-The other macros take no arguments.
-
-The methods and iterator types generated will be public if the enum itself is public; otherwise, they will be private.
-
-## Using Without `macro_attr!`
-
-Although designed to be used with `macro_attr!`, all of the macros in this crate can be used without it.  The following:
-
-```rust
-# use macro_attr_2018::macro_attr;
-# use enum_derive_2018::IterVariants;
-macro_attr! {
-    #[derive(Copy, Clone, Debug, IterVariants!(Vars))]
-    enum ItAintRight { BabeNo, NoNo, BoyBoy }
-}
-# fn main() {}
-```
-
-Can also be written as:
-
-```rust
-# use macro_attr_2018::macro_attr;
-# use enum_derive_2018::IterVariants;
-#[derive(Copy, Clone, Debug)]
-enum ItAintRight { BabeNo, NoNo, BoyBoy }
-
-IterVariants! { (Vars) enum ItAintRight { BabeNo, NoNo, BoyBoy } }
-# fn main() {}
-```
-
-## Other Examples
-
-This shows how to use `Display` and `FromStr` to perform string round-tripping of enums.
-
-```rust
-use macro_attr_2018::macro_attr;
-use enum_derive_2018::{EnumDisplay, EnumFromStr};
-
-macro_attr! {
-    #[derive(Debug, PartialEq, EnumDisplay!, EnumFromStr!)]
-    pub enum TrollDigit { One, Two, Three, Many, Lots }
-}
-
-fn to_troll(mut n: u32) -> String {
-    use std::fmt::Write;
-    let mut s = String::new();
-
-    if n == 0 {
-        panic!("I dun' see nuffin'; how's I s'posed to count it?!");
-    }
-
-    while n > 0 {
-        let (del, dig) = match n {
-            n if n >= 16 => (16, TrollDigit::Lots),
-            n if n >= 4 => (4, TrollDigit::Many),
-            n if n >= 3 => (3, TrollDigit::Three),
-            n if n >= 2 => (2, TrollDigit::Two),
-            _ => (1, TrollDigit::One),
-        };
-        n -= del;
-        if s.len() > 0 { s.push_str(" "); }
-        write!(&mut s, "{}", dig).unwrap();
-    }
-
-    s
-}
-
-fn from_troll(s: &str) -> Result<u32, enum_derive_2018::ParseEnumError> {
-    let mut n = 0;
-    for word in s.split_whitespace() {
-        n += match word.parse()? {
-            TrollDigit::One => 1,
-            TrollDigit::Two => 2,
-            TrollDigit::Three => 3,
-            TrollDigit::Many => 4,
-            TrollDigit::Lots => 16,
-        };
-    }
-    if n == 0 {
-        Err(enum_derive_2018::ParseEnumError)
-    } else {
-        Ok(n)
-    }
-}
-
-# fn main() {
-let number = 42;
-let troll_number = to_troll(number);
-assert_eq!(troll_number, "Lots Lots Many Many Two");
-assert_eq!(from_troll(&troll_number), Ok(number));
-# }
-```
-*/
-
 #![deny(warnings)]
 #![cfg_attr(not(feature = "std"), no_std)]
+
+//! This crate provides several macros for deriving some useful methods for unitary enums
+//! (*i.e.* enums where variants do not have payloads) and unary enums.
+//!
+//! **Crate features**
+//!
+//! * `"std"`
+//! Enabled by default. Disable to make the library `#![no_std]`.
+//!
+//! ## Using with and without `macro_attr!`
+//!
+//! All of the macros are designed to be used with the
+//! [`macro-attr-2018`](https://crates.io/crates/macro-attr-2018) crate,
+//! though they can be used independent of it. The following:
+//! ```rust
+//! # use macro_attr_2018::macro_attr;
+//! # use enum_derive_2018::IterVariants;
+//! macro_attr! {
+//!     #[derive(Copy, Clone, Debug, IterVariants!(Vars))]
+//!     enum ItAintRight { BabeNo, NoNo, BoyBoy }
+//! }
+//! # fn main() {}
+//! ```
+//! can also be written as
+//! ```rust
+//! # use macro_attr_2018::macro_attr;
+//! # use enum_derive_2018::IterVariants;
+//! #[derive(Copy, Clone, Debug)]
+//! enum ItAintRight { BabeNo, NoNo, BoyBoy }
+//!
+//! IterVariants! { (Vars) enum ItAintRight { BabeNo, NoNo, BoyBoy } }
+//! # fn main() {}
+//! ```
+
 #[cfg(feature = "std")]
 extern crate core;
 
@@ -310,8 +149,31 @@ macro_rules! enum_derive_util {
     };
 }
 
+/// Derives `iter_variants()` for an unitary enum, which returns an iterator over the variants of the enum in lexical order.
+///  
+/// The argument is the name of the iterator type that will be generated:
+/// ```rust
+/// # use macro_attr_2018::macro_attr;
+/// # use enum_derive_2018::IterVariants;
+/// macro_attr! {
+///     #[derive(IterVariants!(GetVariants))]
+///     pub enum Get { Up, Down, AllAround }
+/// }
+/// # fn main() {}
+/// ```
+///
+/// Neither macro imposes any naming requirements, save the obvious:
+/// the name must not conflict with any other types.
 #[macro_export]
 macro_rules! IterVariants {
+    (($itername:ident) $vis:vis enum $name:ident { $($body:tt)* }) => {
+        $crate::enum_derive_util! {
+            @collect_unitary_variants
+            (IterVariants { @expand ($vis) $itername, $name }),
+            ($($body)*,) -> ()
+        }
+    };
+
     (
         @expand ($vis:vis) $itername:ident, $name:ident ()
     ) => {
@@ -421,18 +283,34 @@ macro_rules! IterVariants {
             ($($count)* + 1usize)
         }
     };
+}
 
+/// Derives `iter_variant_names()` for an unitary enum,
+/// which returns an iterator over the string names of the variants of the enum in lexical order.
+///  
+/// The argument is the name of the iterator type that will be generated:
+/// ```rust
+/// # use macro_attr_2018::macro_attr;
+/// # use enum_derive_2018::IterVariantNames;
+/// macro_attr! {
+///     #[derive(IterVariants!(GetVariantNames))]
+///     pub enum Get { Up, Down, AllAround }
+/// }
+/// # fn main() {}
+/// ```
+///
+/// Neither macro imposes any naming requirements, save the obvious:
+/// the name must not conflict with any other types.
+#[macro_export]
+macro_rules! IterVariantNames {
     (($itername:ident) $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
-            (IterVariants { @expand ($vis) $itername, $name }),
+            (IterVariantNames { @expand ($vis) $itername, $name }),
             ($($body)*,) -> ()
         }
     };
-}
 
-#[macro_export]
-macro_rules! IterVariantNames {
     (
         @expand ($vis:vis) $itername:ident, $name:ident ()
     ) => {
@@ -545,18 +423,19 @@ macro_rules! IterVariantNames {
             ($($count)* + 1usize)
         }
     };
+}
 
-    (($itername:ident) $vis:vis enum $name:ident { $($body:tt)* }) => {
+/// Derives `next_variant(&self)` for an unitary enum, which returns the next variant, or `None` when called for the last.
+#[macro_export]
+macro_rules! NextVariant {
+    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
-            (IterVariantNames { @expand ($vis) $itername, $name }),
+            (NextVariant { @expand ($vis) $name }),
             ($($body)*,) -> ()
         }
     };
-}
 
-#[macro_export]
-macro_rules! NextVariant {
     (
         @expand ($vis:vis) $name:ident ()
     ) => {
@@ -608,18 +487,19 @@ macro_rules! NextVariant {
             )
         }
     };
+}
 
+/// Derives `prev_variant(&self)` for an unitary enum, which returns the previous variant, or `None` when called for the first.
+#[macro_export]
+macro_rules! PrevVariant {
     (() $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
-            (NextVariant { @expand ($vis) $name }),
+            (PrevVariant { @expand ($vis) $name }),
             ($($body)*,) -> ()
         }
     };
-}
 
-#[macro_export]
-macro_rules! PrevVariant {
     (
         @expand ($vis:vis) $name:ident ()
     ) => {
@@ -671,18 +551,21 @@ macro_rules! PrevVariant {
             )
         }
     };
+}
 
+/// Derives [`Display`](core::fmt::Display) for an unitary enum, which outputs the name of the variant.
+///
+/// Note that this is identical to the behaviour of a derived [`Debug`](core::fmt::Debug) implementation.
+#[macro_export]
+macro_rules! EnumDisplay {
     (() $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
-            (PrevVariant { @expand ($vis) $name }),
+            (EnumDisplay { @expand $name }),
             ($($body)*,) -> ()
         }
     };
-}
 
-#[macro_export]
-macro_rules! EnumDisplay {
     (
         @expand $name:ident ()
     ) => {
@@ -732,18 +615,19 @@ macro_rules! EnumDisplay {
             )
         }
     };
+}
 
+/// Derives [`FromStr`](core::str::FromStr) for an unitary enum. It requires an exact match of the variant name.
+#[macro_export]
+macro_rules! EnumFromStr {
     (() $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unitary_variants
-            (EnumDisplay { @expand $name }),
+            (EnumFromStr { @expand ($vis) $name }),
             ($($body)*,) -> ()
         }
     };
-}
 
-#[macro_export]
-macro_rules! EnumFromStr {
     (
         @expand ($vis:vis) $name:ident ()
     ) => {
@@ -798,21 +682,9 @@ macro_rules! EnumFromStr {
             )
         }
     };
-
-    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
-        $crate::enum_derive_util! {
-            @collect_unitary_variants
-            (EnumFromStr { @expand ($vis) $name }),
-            ($($body)*,) -> ()
-        }
-    };
 }
 
-/**
-This is the error type used for derived implementations of `FromStr` for unitary enums.
-
-See the crate documentation for the `EnumFromStr!` macro.
-*/
+/// The `FromStr` [derived implementations](EnumFromStr) error type.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseEnumError;
 
@@ -822,15 +694,24 @@ impl core::fmt::Display for ParseEnumError {
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature="std")]
 impl std::error::Error for ParseEnumError {
     fn description(&self) -> &str {
         "provided string did not match any enum variant"
     }
 }
 
+/// Derives [`From<T>`](core::convert::From) for each variant's payload, assuming all variants are unary.
 #[macro_export]
 macro_rules! EnumFromInner {
+    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
+        $crate::enum_derive_util! {
+            @collect_unary_variants
+            (EnumFromInner { @expand $name }),
+            ($($body)*,) -> ()
+        }
+    };
+
     (
         @expand $name:ident ($($var_names:ident($var_tys:ty),)*)
     ) => {
@@ -842,18 +723,39 @@ macro_rules! EnumFromInner {
             }
         )*
     };
+}
 
-    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
+/// Derives a method for an unary enum returning a borrowed pointer to the inner value, cast to a trait object.
+///
+/// `EnumInnerAsTrait!` accepts a single deriving form that specifies the name of the method to be derived,
+/// whether the borrow should be mutable, and the trait of interest.
+/// For example:
+/// ```rust
+/// # use macro_attr_2018::macro_attr;
+/// # use enum_derive_2018::EnumInnerAsTrait;
+/// macro_attr! {
+///     #[derive(EnumInnerAsTrait!(pub as_display -> &dyn std::fmt::Display))]
+///     enum Value {
+///         U32(u32),
+///         U64(u64),
+///     }
+/// }
+///
+/// # fn main() {
+/// let s = format!("{}", Value::U64(42).as_display());
+/// assert_eq!(&s[..], "42");
+/// # }
+/// ```
+#[macro_export]
+macro_rules! EnumInnerAsTrait {
+    ($arg:tt $vis:vis enum $name:ident { $($body:tt)* }) => {
         $crate::enum_derive_util! {
             @collect_unary_variants
-            (EnumFromInner { @expand $name }),
+            (EnumInnerAsTrait { @expand $arg, $name, }),
             ($($body)*,) -> ()
         }
     };
-}
 
-#[macro_export]
-macro_rules! EnumInnerAsTrait {
     (
         @expand ($vis:vis $fn_name:ident -> &mut $tr:ty), $($tail:tt)*
     ) => {
@@ -903,14 +805,6 @@ macro_rules! EnumInnerAsTrait {
                     }
                 }
             }
-        }
-    };
-
-    ($arg:tt $vis:vis enum $name:ident { $($body:tt)* }) => {
-        $crate::enum_derive_util! {
-            @collect_unary_variants
-            (EnumInnerAsTrait { @expand $arg, $name, }),
-            ($($body)*,) -> ()
         }
     };
 }
