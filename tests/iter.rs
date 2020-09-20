@@ -7,6 +7,9 @@
 // files in the project carrying such notice may not be copied, modified,
 // or distributed except according to those terms.
 
+#![deny(warnings)]
+#![allow(clippy::needless_collect)]
+
 use enum_derive_2018::{IterVariants, IterVariantNames};
 use macro_attr_2018::macro_attr;
 
