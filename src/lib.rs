@@ -7,9 +7,6 @@
 // files in the project carrying such notice may not be copied, modified,
 // or distributed except according to those terms.
 
-#![deny(warnings)]
-#![cfg_attr(not(feature = "std"), no_std)]
-
 //! This crate provides several macros for deriving some useful methods for unitary enums
 //! (*i.e.* enums where variants do not have payloads) and unary enums.
 //!
@@ -43,15 +40,14 @@
 //! # fn main() {}
 //! ```
 
+#![deny(warnings)]
+
+#![cfg_attr(not(feature = "std"), no_std)]
 #[cfg(feature = "std")]
 extern crate core;
 
 #[doc(hidden)]
-pub use core::iter::Iterator as std_iter_Iterator; 
-#[doc(hidden)]
-pub use core::option::Option as std_option_Option;
-#[doc(hidden)]
-pub use core::iter::ExactSizeIterator as std_iter_ExactSizeIterator;
+pub use core::convert::From as std_convert_From;
 #[doc(hidden)]
 pub use core::fmt::Display as std_fmt_Display;
 #[doc(hidden)]
@@ -59,13 +55,17 @@ pub use core::fmt::Formatter as std_fmt_Formatter;
 #[doc(hidden)]
 pub use core::fmt::Result as std_fmt_Result;
 #[doc(hidden)]
-pub use core::result::Result as std_result_Result;
+pub use core::iter::ExactSizeIterator as std_iter_ExactSizeIterator;
 #[doc(hidden)]
-pub use core::str::FromStr as std_str_FromStr;
+pub use core::iter::Iterator as std_iter_Iterator;
 #[doc(hidden)]
 pub use core::mem::replace as std_mem_replace;
 #[doc(hidden)]
-pub use core::convert::From as std_convert_From;
+pub use core::option::Option as std_option_Option;
+#[doc(hidden)]
+pub use core::result::Result as std_result_Result;
+#[doc(hidden)]
+pub use core::str::FromStr as std_str_FromStr;
 
 #[doc(hidden)]
 #[macro_export]
