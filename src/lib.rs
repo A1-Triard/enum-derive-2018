@@ -37,7 +37,6 @@
 //! ```
 //! can also be written as
 //! ```rust
-//! # use macro_attr_2018::macro_attr;
 //! # use enum_derive_2018::IterVariants;
 //! #[derive(Copy, Clone, Debug)]
 //! enum ItAintRight { BabeNo, NoNo, BoyBoy }
