@@ -46,10 +46,12 @@
 //! # fn main() {}
 //! ```
 
-#![cfg_attr(not(feature = "std"), no_std)]
-#[cfg(feature = "std")]
+#![cfg_attr(not(feature="std"), no_std)]
+#[cfg(feature="std")]
 extern crate core;
 
+#[doc(hidden)]
+pub use core::compile_error as std_compile_error;
 #[doc(hidden)]
 pub use core::convert::From as std_convert_From;
 #[doc(hidden)]
@@ -112,7 +114,7 @@ macro_rules! enum_derive_util {
         @collect_unitary_variants ($name:ident),
         ($var:ident $_struct:tt, $($tail:tt)*) -> ($($var_names:tt)*)
     ) => {
-        const _error: () = "cannot parse unitary variants from enum with non-unitary variants";
+        $crate::std_compile_error!("cannot parse unitary variants from enum with non-unitary variants");
     };
 
     (
@@ -149,11 +151,12 @@ macro_rules! enum_derive_util {
         @collect_unary_variants ($name:ident),
         ($var:ident $_struct:tt, $($tail:tt)*) -> ($($_out:tt)*)
     ) => {
-        const _error: () = "cannot parse unary variants from enum with non-unary tuple variants";
+        $crate::std_compile_error!("cannot parse unary variants from enum with non-unary tuple variants");
     };
 }
 
-/// Derives `iter_variants()` for an unitary enum, which returns an iterator over the variants of the enum in lexical order.
+/// Derives `iter_variants()` for an unitary enum,
+/// which returns an iterator over the variants of the enum in lexical order.
 ///  
 /// The argument is the name of the iterator type that will be generated:
 /// ```rust
@@ -176,6 +179,9 @@ macro_rules! IterVariants {
             ($crate::IterVariants_impl { @expand ($vis) $itername, $name }),
             ($($body)*,) -> ()
         }
+    };
+    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
+        $crate::std_compile_error!("IterVariants! requires iterator name parameter");
     };
 }
 
@@ -317,6 +323,9 @@ macro_rules! IterVariantNames {
             ($crate::IterVariantNames_impl { @expand ($vis) $itername, $name }),
             ($($body)*,) -> ()
         }
+    };
+    (() $vis:vis enum $name:ident { $($body:tt)* }) => {
+        $crate::std_compile_error!("IterVariantNames! requires iterator name parameter");
     };
 }
 
@@ -800,6 +809,14 @@ macro_rules! EnumInnerAsTrait_impl {
         @expand ($vis:vis $fn_name:ident -> &$tr:ty), $($tail:tt)*
     ) => {
         $crate::EnumInnerAsTrait_impl! { @expand_inner ($vis), $fn_name, (), $tr, $($tail)* }
+    };
+
+    (
+        @expand ($($t:tt)*), $($tail:tt)*
+    ) => {
+        $crate::std_compile_error!(
+            "invalid EnumInnerAsTrait! parameter, the allowed form is '$vis:vis $fn_name:ident -> & $(mut)? $tr:ty'"
+        );
     };
 
     (
