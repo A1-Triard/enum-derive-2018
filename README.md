@@ -1,3 +1,5 @@
+![maintenance: actively developed](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
+
 # `enum-derive-2018`
 
 The [`enum-derive`](https://crates.io/crates/enum-derive) modern fork.
