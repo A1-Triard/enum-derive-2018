@@ -14,6 +14,7 @@ panic = "abort"
 libc_alloc = "1.0.3"
 enum-derive-2018 = { path = "..", default-features = false }
 macro-attr-2018 = "2.0.0"
+exit-no-std = "0.2.0"
 
 [target.'cfg(not(windows))'.dependencies]
 libc = { version = "0.2", default-features = false }
