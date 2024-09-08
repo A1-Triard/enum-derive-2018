@@ -16,10 +16,8 @@
 //! This crate provides several macros for deriving some useful methods for unitary enums
 //! (*i.e.* enums where variants do not have payloads) and unary enums.
 //!
-//! **Crate features**
-//!
-//! * `"std"`
-//! Enabled by default. Disable to make the library `#![no_std]`.
+//! ## Feature flags
+#![doc=document_features::document_features!()]
 //!
 //! ## Using with and without `macro_attr!`
 //!
